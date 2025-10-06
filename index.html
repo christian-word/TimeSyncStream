@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:image" content="https://raw.githubusercontent.com/christian-word/GospelVoice/main/ICO/strim_gi.jpg">
+  <title>Христианский Кинопоказ - Онлайн Кинотеатр</title>
+  <link href="https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: url('https://raw.githubusercontent.com/christian-word/GospelVoice/main/ICO/strim_gi.jpg') center/cover no-repeat fixed;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+      z-index: 1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 40px 20px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .logo-header {
+      margin-bottom: 50px;
+      animation: fadeInDown 1s ease;
+    }
+
+    .logo-svg {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 20px;
+      filter: drop-shadow(0 10px 30px rgba(255, 255, 255, 0.3));
+    }
+
+    h1 {
+      font-family: 'Philosopher', serif;
+      font-size: 2.5rem;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #e0e0e0;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+      margin-bottom: 10px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+      animation: fadeInUp 1s ease 0.3s both;
+    }
+
+    .menu-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px 30px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .menu-card:hover::before {
+      left: 100%;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-15px) scale(1.05);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+
+    .menu-card:hover .card-icon {
+      transform: rotate(360deg) scale(1.1);
+    }
+
+    .card-icon svg {
+      width: 80px;
+      height: 80px;
+    }
+
+    .purple-theme {
+      background: linear-gradient(135deg, #9146FF 0%, #772CE8 100%);
+    }
+
+    .blue-theme {
+      background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .card-description {
+      font-size: 0.95rem;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .badge-purple {
+      background: linear-gradient(135deg, #9146FF 0%, #772CE8 100%);
+      box-shadow: 0 4px 15px rgba(145, 70, 255, 0.4);
+    }
+
+    .badge-blue {
+      background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
+      box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .menu-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .menu-card {
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-header">
+      <div class="logo-svg">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          <!-- Книга -->
+          <path d="M40 80 L40 160 L100 170 L160 160 L160 80 L100 70 Z" 
+                fill="url(#logoGrad)" stroke="#fff" stroke-width="2" filter="url(#glow)"/>
+          <path d="M100 70 L100 170" stroke="#fff" stroke-width="2" opacity="0.7"/>
+          <path d="M50 90 L90 95 M50 105 L90 110 M50 120 L90 125" 
+                stroke="#ddd" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M110 95 L150 90 M110 110 L150 105 M110 125 L150 120" 
+                stroke="#ddd" stroke-width="1.5" stroke-linecap="round"/>
+          
+          <!-- Голубь -->
+          <ellipse cx="80" cy="45" rx="12" ry="8" fill="#fff" filter="url(#glow)"/>
+          <path d="M65 45 Q60 40 55 42 Q50 44 55 47 Q60 50 65 45" 
+                fill="#fff" opacity="0.9"/>
+          <path d="M95 45 Q100 40 105 42 Q110 44 105 47 Q100 50 95 45" 
+                fill="#fff" opacity="0.9"/>
+          <circle cx="78" cy="44" r="1.5" fill="#333"/>
+          <circle cx="82" cy="44" r="1.5" fill="#333"/>
+          
+          <!-- Крест -->
+          <g filter="url(#glow)">
+            <rect x="95" y="15" width="10" height="35" fill="#fff" rx="2"/>
+            <rect x="85" y="28" width="30" height="8" fill="#fff" rx="2"/>
+            <line x1="100" y1="15" x2="85" y2="5" stroke="#fff" stroke-width="2"/>
+            <line x1="100" y1="15" x2="115" y2="5" stroke="#fff" stroke-width="2"/>
+            <line x1="100" y1="15" x2="100" y2="5" stroke="#fff" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+      <h1>ХРИСТИАНСКИЙ КИНОПОКАЗ</h1>
+      <p class="subtitle">Онлайн Кинотеатр</p>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-card" onclick="window.location.href='christian_broadcast_player3.html'">
+        <div class="card-icon purple-theme">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="35" width="60" height="40" rx="5" fill="#fff" opacity="0.9"/>
+            <rect x="25" y="40" width="25" height="25" rx="2" fill="#9146FF"/>
+            <rect x="55" y="40" width="20" height="3" rx="1" fill="#9146FF"/>
+            <rect x="55" y="47" width="20" height="3" rx="1" fill="#9146FF"/>
+            <rect x="55" y="54" width="15" height="3" rx="1" fill="#9146FF"/>
+            <circle cx="50" cy="25" r="8" fill="#fff"/>
+            <path d="M45 25 L55 25 M50 20 L50 30" stroke="#9146FF" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <h2 class="card-title">Христианский Кинозал</h2>
+        <p class="card-description">Онлайн трансляция проповедей и библейских учений с YouTube</p>
+        <span class="card-badge badge-purple">
+          <span class="live-dot"></span>
+          YouTube Player
+        </span>
+      </div>
+
+      <div class="menu-card" onclick="window.location.href='christian-video-player.html'">
+        <div class="card-icon blue-theme">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="15" y="25" width="70" height="50" rx="5" fill="#fff" opacity="0.9"/>
+            <polygon points="40,40 40,60 60,50" fill="#1E90FF"/>
+            <circle cx="25" cy="30" r="3" fill="#00BFFF"/>
+            <circle cx="35" cy="30" r="3" fill="#00BFFF"/>
+            <rect x="70" y="28" width="8" height="4" rx="2" fill="#1E90FF"/>
+            <path d="M20 80 L35 85 L50 80 L65 85 L80 80" 
+                  stroke="#1E90FF" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2 class="card-title">Кинотеатр</h2>
+        <p class="card-description">Библейские фильмы в прямом эфире с синхронизацией времени</p>
+        <span class="card-badge badge-blue">
+          <span class="live-dot"></span>
+          LIVE Films
+        </span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
