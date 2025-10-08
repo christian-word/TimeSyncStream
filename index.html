@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta property="og:image" content="https://raw.githubusercontent.com/christian-word/TimeSyncStream/main/ico/liveyoutube.png">
-  <title>Христианский Медиа портал</title>
+  <meta property="og:image" content="https://raw.githubusercontent.com/christian-word/GospelVoice/main/ICO/liveyoutube.png">
+  <title>Христианский Кинопоказ - Онлайн Кинотеатр</title>
   <link href="https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -245,12 +245,12 @@
       <div class="logo-svg">
         <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
+            <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#4a5568;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#2d3748;stop-opacity:1" />
             </linearGradient>
             <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
               <feMerge>
                 <feMergeNode in="coloredBlur"/>
                 <feMergeNode in="SourceGraphic"/>
@@ -258,32 +258,33 @@
             </filter>
           </defs>
           
-          <!-- Книга -->
-          <path d="M40 80 L40 160 L100 170 L160 160 L160 80 L100 70 Z" 
-                fill="url(#logoGrad)" stroke="#fff" stroke-width="2" filter="url(#glow)"/>
-          <path d="M100 70 L100 170" stroke="#fff" stroke-width="2" opacity="0.7"/>
-          <path d="M50 90 L90 95 M50 105 L90 110 M50 120 L90 125" 
-                stroke="#ddd" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M110 95 L150 90 M110 110 L150 105 M110 125 L150 120" 
-                stroke="#ddd" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Видео экран темный -->
+          <rect x="40" y="60" width="120" height="90" rx="10" 
+                fill="url(#screenGrad)" stroke="#fff" stroke-width="3" filter="url(#glow)"/>
           
-          <!-- Голубь -->
-          <ellipse cx="80" cy="45" rx="12" ry="8" fill="#fff" filter="url(#glow)"/>
-          <path d="M65 45 Q60 40 55 42 Q50 44 55 47 Q60 50 65 45" 
-                fill="#fff" opacity="0.9"/>
-          <path d="M95 45 Q100 40 105 42 Q110 44 105 47 Q100 50 95 45" 
-                fill="#fff" opacity="0.9"/>
-          <circle cx="78" cy="44" r="1.5" fill="#333"/>
-          <circle cx="82" cy="44" r="1.5" fill="#333"/>
+          <!-- Play кнопка фон -->
+          <circle cx="100" cy="105" r="35" fill="rgba(255,255,255,0.2)" filter="url(#glow)"/>
           
-          <!-- Крест -->
+          <!-- Крест в центре - яркий белый -->
           <g filter="url(#glow)">
-            <rect x="95" y="15" width="10" height="35" fill="#fff" rx="2"/>
-            <rect x="85" y="28" width="30" height="8" fill="#fff" rx="2"/>
-            <line x1="100" y1="15" x2="85" y2="5" stroke="#fff" stroke-width="2"/>
-            <line x1="100" y1="15" x2="115" y2="5" stroke="#fff" stroke-width="2"/>
-            <line x1="100" y1="15" x2="100" y2="5" stroke="#fff" stroke-width="2"/>
+            <rect x="94" y="82" width="12" height="58" fill="#ffffff" rx="3"/>
+            <rect x="82" y="100" width="36" height="11" fill="#ffffff" rx="3"/>
           </g>
+          
+          <!-- Декоративные элементы видео -->
+          <circle cx="55" cy="75" r="4" fill="#ff4757"/>
+          <circle cx="70" cy="75" r="4" fill="#ffd700"/>
+          <circle cx="85" cy="75" r="4" fill="#2ecc71"/>
+          
+          <!-- Волны сигнала -->
+          <path d="M30 105 Q35 95 40 105" stroke="#fff" stroke-width="3" fill="none" 
+                opacity="0.7" stroke-linecap="round"/>
+          <path d="M160 105 Q165 95 170 105" stroke="#fff" stroke-width="3" fill="none" 
+                opacity="0.7" stroke-linecap="round"/>
+          <path d="M20 105 Q27 85 34 105" stroke="#fff" stroke-width="2.5" fill="none" 
+                opacity="0.5" stroke-linecap="round"/>
+          <path d="M166 105 Q173 85 180 105" stroke="#fff" stroke-width="2.5" fill="none" 
+                opacity="0.5" stroke-linecap="round"/>
         </svg>
       </div>
       <h1>ХРИСТИАНСКИЙ КИНОПОКАЗ</h1>
