@@ -1,0 +1,609 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактор плейлистов YouTube</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #editor-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        #add-video-section, #load-playlist-section, #time-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #video-url, #playlist-url, #broadcast-date, #broadcast-time {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #video-player-container {
+            width: 560px;
+            height: 315px;
+            margin: 20px auto; 
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        #playlist-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px; /* Изменено: добавлен отступ снизу, чтобы отделить от секций ввода */
+        }
+        #playlist-table th, #playlist-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        #playlist-table thead {
+            background-color: #f2f2f2;
+        }
+        .control-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .play-btn {
+            background-color: #e03232;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .unavailable-video {
+            background-color: #ffcccc;
+            color: #a50000;
+        }
+        .drag-handle {
+            cursor: grab;
+            font-size: 20px;
+            vertical-align: middle;
+            color: #666;
+            margin-right: 10px;
+        }
+        .action-cell {
+            display: flex;
+            gap: 5px;
+        }
+        tr[draggable="true"]:hover {
+            background-color: #e9ecef;
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+        #save-playlist-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        #save-playlist-btn:hover {
+            background-color: #218838;
+        }
+        #save-playlist-btn.unsaved {
+            background-color: #ff8c00;
+        }
+        #save-playlist-btn.unsaved:hover {
+            background-color: #e67e00;
+        }
+        /* Стили для дубликатов */
+        .duplicate-1 { background-color: #f5e0a9; }
+        .duplicate-2 { background-color: #b3d9ff; }
+        .duplicate-3 { background-color: #d1b3ff; }
+        .duplicate-4 { background-color: #b3ffb3; }
+        .duplicate-5 { background-color: #ffd9b3; }
+
+/* кнопка перемешивания */
+#shuffle-btn{
+    width:100%;
+    padding:12px;
+    background:#6f42c1;
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:16px;
+    margin-bottom:12px;   /* отступ до кнопки «Сохранить» */
+}
+#shuffle-btn:hover{background:#5a2c96;}
+    </style>
+</head>
+<body>
+
+    <h1>Редактор плейлистов YouTube 🎬</h1>
+
+    <div id="editor-container">
+        
+        <table id="playlist-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Название</th>
+                    <th>Длительность (сек)</th>
+                    <th>Начало</th>
+                    <th>Окончание</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+        
+        <div id="load-playlist-section">
+            <input type="text" id="playlist-url" placeholder="Вставьте ссылку на JSON-файл">
+            <button id="load-from-url-btn">Загрузить</button>
+        </div>
+
+        <div id="time-section">
+            <input type="date" id="broadcast-date">
+            <input type="time" id="broadcast-time">
+        </div>
+
+        <div id="add-video-section">
+            <input type="text" id="video-url" placeholder="Вставьте URL или ID видео">
+            <button id="add-video-btn">Добавить видео</button>
+        </div>
+	<!-- 🔀 Перемешать -->
+	<button id="shuffle-btn">🔀 Перемешать плейлист</button>
+        
+	<button id="save-playlist-btn">Сохранить плейлист (.json)</button>
+        
+        <div id="video-player-container">
+            Видео для проверки появится здесь.
+        </div>
+        
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyB79LenCkfDqTFbrVMRVoAqRp5Wpzy_2Dg'; // Ваш API ключ
+        const LAST_URL_KEY = 'lastPlaylistUrl';
+        
+        let playlist = [];
+        let draggedItem = null;
+
+        const videoUrlInput = document.getElementById('video-url');
+        const addVideoBtn = document.getElementById('add-video-btn');
+        const playlistTableBody = document.querySelector('#playlist-table tbody');
+        const savePlaylistBtn = document.getElementById('save-playlist-btn');
+        const playlistUrlInput = document.getElementById('playlist-url');
+        const loadFromUrlBtn = document.getElementById('load-from-url-btn');
+        const broadcastDateInput = document.getElementById('broadcast-date');
+        const broadcastTimeInput = document.getElementById('broadcast-time');
+        const videoPlayerContainer = document.getElementById('video-player-container');
+        
+        // Функция для отслеживания несохраненных изменений
+        function markUnsavedChanges() {
+            savePlaylistBtn.classList.add('unsaved');
+            savePlaylistBtn.textContent = 'Сохранить изменения';
+        }
+
+        function clearUnsavedChanges() {
+            savePlaylistBtn.classList.remove('unsaved');
+            savePlaylistBtn.textContent = 'Сохранить плейлист (.json)';
+        }
+
+        // Вспомогательная функция для извлечения ID видео
+        function extractVideoId(url) {
+            const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/;
+            const match = url.match(regex);
+            return (match && match[1]) ? match[1] : url;
+        }
+
+        // Вспомогательная функция для форматирования продолжительности
+        function formatDuration(iso) {
+            const matches = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+            const hours = matches[1] ? parseInt(matches[1], 10) : 0;
+            const minutes = matches[2] ? parseInt(matches[2], 10) : 0;
+            const seconds = matches[3] ? parseInt(matches[3], 10) : 0;
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+        
+        // Вспомогательная функция для форматирования времени в ЧЧ:ММ:СС
+        function formatTime(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Получение метаданных видео с помощью YouTube Data API
+        async function fetchVideoData(videoId) {
+            const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${API_KEY}&part=snippet,contentDetails,status`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.items && data.items.length > 0) {
+                    const item = data.items[0];
+                    const isEmbeddable = item.status && item.status.embeddable === true;
+                    if (!isEmbeddable) {
+                        alert(`Видео "${item.snippet.title}" недоступно для встраивания. Оно будет помечено красным.`);
+                    }
+                    const title = item.snippet.title;
+                    const duration = formatDuration(item.contentDetails.duration);
+                    return { videoId, title, duration, isEmbeddable };
+                } else {
+                    alert('Видео не найдено или недействительный ID. Проверьте правильность ссылки.');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных о видео:', error);
+                alert('Произошла ошибка при получении данных о видео. Возможно, API-ключ недействителен или превышен лимит запросов.');
+                return null;
+            }
+        }
+
+        // Расчёт времени начала и окончания для каждого видео
+        function calculateSchedule() {
+            const [year, month, day] = broadcastDateInput.value.split('-').map(Number);
+            const [hours, minutes] = broadcastTimeInput.value.split(':').map(Number);
+            
+            const broadcastStartTime = new Date(year, month - 1, day, hours, minutes);
+
+            let currentTime = broadcastStartTime.getTime();
+            playlist.forEach(video => {
+                video.startTime = currentTime;
+                video.endTime = currentTime + (video.duration * 1000);
+                currentTime = video.endTime;
+            });
+            updateScheduleDisplay();
+        }
+
+        // Обновление отображения времени в таблице
+        function updateScheduleDisplay() {
+            document.querySelectorAll('#playlist-table tbody tr').forEach((row, index) => {
+                const video = playlist[index];
+                if (video) {
+                    row.querySelector('td:nth-child(4)').textContent = formatTime(new Date(video.startTime));
+                    row.querySelector('td:nth-child(5)').textContent = formatTime(new Date(video.endTime));
+                }
+            });
+        }
+        
+        // Функция для поиска дубликатов и присвоения им классов
+        function findDuplicates() {
+            const seen = new Map();
+            const duplicates = new Set();
+            playlist.forEach(video => {
+                const key = `${video.videoId}-${video.title}`;
+                if (seen.has(key)) {
+                    duplicates.add(key);
+                } else {
+                    seen.set(key, true);
+                }
+            });
+
+            const duplicateMap = new Map();
+            let duplicateCounter = 0;
+            playlist.forEach((video, index) => {
+                const key = `${video.videoId}-${video.title}`;
+                if (duplicates.has(key)) {
+                    if (!duplicateMap.has(key)) {
+                        duplicateCounter++;
+                        duplicateMap.set(key, `duplicate-${duplicateCounter}`);
+                    }
+                    video.duplicateClass = duplicateMap.get(key);
+                } else {
+                    video.duplicateClass = '';
+                }
+            });
+        }
+
+        // Отрисовка таблицы плейлиста
+        async function renderPlaylistTable() {
+            calculateSchedule();
+            findDuplicates(); // Проверяем на дубликаты перед отрисовкой
+            playlistTableBody.innerHTML = '';
+            for (const [index, video] of playlist.entries()) {
+                const tr = document.createElement('tr');
+                tr.dataset.index = index;
+                tr.draggable = true;
+                
+                const videoData = await fetchVideoData(video.videoId);
+                if (videoData && !videoData.isEmbeddable) {
+                    tr.classList.add('unavailable-video');
+                }
+                
+                // Добавляем класс для дубликатов, если он есть
+                if (video.duplicateClass) {
+                    tr.classList.add(video.duplicateClass);
+                }
+
+                tr.innerHTML = `
+                    <td><span class="drag-handle">☰</span></td>
+                    <td>${video.title}</td>
+                    <td>${video.duration}</td>
+                    <td>${formatTime(new Date(video.startTime))}</td>
+                    <td>${formatTime(new Date(video.endTime))}</td>
+                    <td>
+                        <div class="action-cell">
+                            <button class="control-btn play-btn" data-video-id="${video.videoId}">▶️</button>
+                            <button class="control-btn delete-btn" data-index="${index}">✖</button>
+                        </div>
+                    </td>
+                `;
+                playlistTableBody.appendChild(tr);
+            }
+        }
+
+        // Функция для воспроизведения видео в плеере
+        function playVideo(videoId) {
+            videoPlayerContainer.innerHTML = `
+                <iframe 
+                    width="560" 
+                    height="315" 
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+
+        // Загрузка последней сохраненной ссылки
+        function loadLastUrl() {
+            const lastUrl = localStorage.getItem(LAST_URL_KEY);
+            if (lastUrl) {
+                playlistUrlInput.value = lastUrl;
+            }
+        }
+
+        // Обработчик загрузки плейлиста по ссылке
+        loadFromUrlBtn.addEventListener('click', async () => {
+            const url = playlistUrlInput.value.trim();
+            if (!url) {
+                alert('Пожалуйста, введите URL-адрес плейлиста.');
+                return;
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Не удалось загрузить файл. Проверьте URL.');
+                }
+                const data = await response.json();
+                if (data.programSchedule) {
+                    playlist = data.programSchedule;
+                    if (data.broadcastStartTime) {
+                        const date = new Date(data.broadcastStartTime);
+                        broadcastDateInput.value = date.toISOString().split('T')[0];
+                        broadcastTimeInput.value = date.toTimeString().split(' ')[0].substring(0, 5);
+                    } else {
+                        const now = new Date();
+                        broadcastDateInput.value = now.toISOString().split('T')[0];
+                        broadcastTimeInput.value = now.toTimeString().split(' ')[0].substring(0, 5);
+                    }
+                    renderPlaylistTable();
+                    localStorage.setItem(LAST_URL_KEY, url);
+                    clearUnsavedChanges(); // Сброс индикатора изменений
+                    alert('Плейлист успешно загружен!');
+                } else {
+                    alert('Неверный формат файла плейлиста.');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки плейлиста:', error);
+                alert('Произошла ошибка при загрузке плейлиста. Убедитесь, что ссылка корректна и файл доступен.');
+            }
+        });
+
+        // Обработчик добавления видео
+        addVideoBtn.addEventListener('click', async () => {
+            const url = videoUrlInput.value.trim();
+            if (url) {
+                const videoId = extractVideoId(url);
+                const videoData = await fetchVideoData(videoId);
+                if (videoData) {
+                    playlist.push(videoData);
+                    renderPlaylistTable();
+                    videoUrlInput.value = '';
+                    markUnsavedChanges(); // Отметить изменения
+                }
+            } else {
+                alert('Пожалуйста, введите URL или ID видео.');
+            }
+        });
+
+        // Исправленный обработчик для кнопок в таблице
+        playlistTableBody.addEventListener('click', (e) => {
+            const btn = e.target;
+            if (btn.classList.contains('delete-btn')) {
+                const tr = btn.closest('tr');
+                if (tr) {
+                    const index = parseInt(tr.dataset.index, 10);
+                    playlist.splice(index, 1);
+                    tr.remove(); // Удаляем строку из DOM
+                    
+                    // Переиндексируем оставшиеся строки
+                    document.querySelectorAll('#playlist-table tbody tr').forEach((row, newIndex) => {
+                        row.dataset.index = newIndex;
+                    });
+                    
+                    calculateSchedule();
+                    markUnsavedChanges(); // Отметить изменения
+                }
+            } else if (btn.classList.contains('play-btn')) {
+                const videoId = btn.dataset.videoId;
+                playVideo(videoId);
+            }
+        });
+
+        // Обработчики для Drag and Drop
+        playlistTableBody.addEventListener('dragstart', (e) => {
+            draggedItem = e.target.closest('tr');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedItem.dataset.index);
+            setTimeout(() => {
+                draggedItem.classList.add('dragging');
+            }, 0);
+        });
+
+        playlistTableBody.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const targetItem = e.target.closest('tr');
+            if (targetItem && targetItem !== draggedItem) {
+                const bounding = targetItem.getBoundingClientRect();
+                const offset = bounding.y + (bounding.height / 2);
+                targetItem.classList.remove('dropzone-hover-below', 'dropzone-hover-above');
+                if (e.clientY > offset) {
+                    targetItem.classList.add('dropzone-hover-below');
+                } else {
+                    targetItem.classList.add('dropzone-hover-above');
+                }
+            }
+        });
+        
+        playlistTableBody.addEventListener('dragleave', (e) => {
+            const targetItem = e.target.closest('tr');
+            if (targetItem) {
+                targetItem.classList.remove('dropzone-hover-below', 'dropzone-hover-above');
+            }
+        });
+
+        playlistTableBody.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const droppedOnItem = e.target.closest('tr');
+            const draggedIndex = parseInt(draggedItem.dataset.index, 10);
+            const droppedOnIndex = parseInt(droppedOnItem.dataset.index, 10);
+            
+            if (draggedIndex === droppedOnIndex) return;
+
+            const [removed] = playlist.splice(draggedIndex, 1);
+            const newIndex = draggedIndex > droppedOnIndex ? droppedOnIndex : droppedOnIndex;
+
+            playlist.splice(newIndex, 0, removed);
+            
+            draggedItem.classList.remove('dragging');
+            document.querySelectorAll('tr').forEach(tr => tr.classList.remove('dropzone-hover-below', 'dropzone-hover-above'));
+            
+            renderPlaylistTable();
+            markUnsavedChanges(); // Отметить изменения
+        });
+
+        // Обработчик сохранения плейлиста
+        savePlaylistBtn.addEventListener('click', () => {
+            if (playlist.length === 0) {
+                alert('Плейлист пуст. Добавьте видео для сохранения.');
+                return;
+            }
+            
+            // Получаем дату и время из полей ввода
+            const [year, month, day] = broadcastDateInput.value.split('-');
+            const [hours, minutes] = broadcastTimeInput.value.split(':');
+            
+            // Создаем объект Date в локальном времени
+            const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+            
+            // Форматируем для сохранения с поправкой +03:00
+            function formatDateWithTimezone(date) {
+                const pad = (num) => num.toString().padStart(2, '0');
+                const isoDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+                const isoTime = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+                return `${isoDate}T${isoTime}+03:00`;
+            }
+
+            const jsonContent = JSON.stringify({
+                broadcastStartTime: formatDateWithTimezone(localDate),
+                programSchedule: playlist.map((video, index) => ({
+                    videoId: video.videoId,
+                    duration: video.duration,
+                    title: video.title,
+                    startTime: (new Date(video.startTime).getTime() - localDate.getTime()) / 1000,
+                }))
+            }, null, 2);
+            
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'playlist.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            clearUnsavedChanges(); // Сброс индикатора изменений
+            alert('Плейлист сохранён как playlist.json');
+        });
+
+        // Инициализация полей ввода датой и временем
+        function initializeDateTimeInputs() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            broadcastDateInput.value = `${year}-${month}-${day}`;
+            broadcastTimeInput.value = `${hours}:${minutes}`;
+
+            // Добавляем слушателей, чтобы расписание обновлялось при изменении времени
+            broadcastDateInput.addEventListener('change', () => {
+                calculateSchedule();
+                markUnsavedChanges();
+            });
+            broadcastTimeInput.addEventListener('change', () => {
+                calculateSchedule();
+                markUnsavedChanges();
+            });
+        }
+
+        // Загрузка последней ссылки и инициализация при старте страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLastUrl();
+            initializeDateTimeInputs();
+        });
+/* ----------  ФУНКЦИЯ ПЕРЕМЕШИВАНИЯ  ---------- */
+function shufflePlaylist(){
+    if(playlist.length < 2) return;          // нечего мешать
+    for(let i = playlist.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
+    }
+    renderPlaylistTable();   // перерисуем таблицу + пересчитаем расписание
+    markUnsavedChanges();    // пометим, что есть несохранённые изменения
+}
+
+/* вешаем обработчик на кнопку */
+document.getElementById('shuffle-btn').addEventListener('click', shufflePlaylist);
+    </script>
+</body>
+</html>
