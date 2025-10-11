@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактор расписаний — BRODCAST</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 800px;
+            margin: 16px auto;
+            padding: 0 12px;
+            background-color: #f7f8fa;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+        h1 {
+            color: #0061ff;
+            text-align: center;
+            margin: 0 0 20px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #fafbff;
+            border: 1px solid #e8eaf0;
+            border-radius: 8px;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-title {
+            font-weight: 600;
+            color: #1a73e8;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        input[type="datetime-local"] {
+            width: 180px;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .btn-save {
+            background-color: #0061ff;
+            color: white;
+        }
+        .btn-save:hover {
+            background-color: #0052cc;
+        }
+        .btn-save:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-bulk {
+            background-color: #34a853;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+        .btn-bulk:hover {
+            background-color: #2d8f4a;
+        }
+        .result {
+            margin-top: 16px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            display: none;
+            font-size: 14px;
+        }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Редактор расписаний — BRODCAST</h1>
+        <div id="filesContainer"></div>
+        <button class="btn-bulk" onclick="saveSelectedFiles()">💾 Сохранить выбранные файлы</button>
+        <div id="result" class="result"></div>
+    </div>
+    <script>
+        const ACCESS_TOKEN = "sl.u.AGA9st1Dnm2UCK4be-06RuG4UexfWnN2apGKd_pZrA6yrOuAlTf0B53Rc25sAKEx9x_1giipdfdo1upRmydzywMuSW4Hvv9QhN86EkPMV4vipZg3tQ8kbPSyHD2uZ1zuLutA2Gt1KBBPofeXnZY_Eswnrfhwu7IMEbG_wu-5Wh9as6APrGVw_6hPLLKjIG_2Olphi0_DGrnFRQy9CYhTDMpWLBT5ZfWD4yInZRNJ6wRJ3Dbct6zqKE9uYAiKKuA5UfCUODlyL454K3GrAv4FHyQp0aS_FhzwiURsQS2YyQvZhy5CR6gBGhnLmiqQygIblzJ4y9AHOkT_tzKvZvMK_JKlAF1A2AAsiq4fFGcaWS-zTMeEvlhETk_NPvf2c5rCLKdWUFnVlomumdM5CZiTZebzWntdLL5NAC7nVIrx_rflhYGbTYZCFVucfBEKbbXRHp6X5zvF1kt-c8mbQNGme0jhtiVugrtUMNfAQodzQvjOJMYtgEVzYcNcx3saY3kgZW61PypDRNeO_usdQFJZ2DQyBn43Gmz3TNsC_hng4VyK2RBlji3o8EKn9jHF7FngqYr0QvDuT09ddQMx4dAEAn2M5ujV0cD7fDlwgzznk60FiNuPMcXH8-SwfyC-Zqs7lNxNom028TObIBCF6N8yoe6ldx5Z_Qd1yV-gncLmuud2Lx_kfbpnyE6vDDcrxfcWWcPeYw_20HuZmU2JGzrg_LUEvnt01ROJ7gJuiIOwG3EFZslFr_N7Rs3617jQZzfiJ5dSIBdBo5VBlwEk-RtPMDYSHDG7Wmfb2Uo3Fa0MHAIvuEcqVu7L57AE_NmIzS_wmp7w4nX0AerEy0tJqpRtXKqE2Q69jFLRDTWpiUaI208zZ_HlpkWsQPI2nqOMUDbULCEycSCnovH57rlwclf3aex7o0UmLBYX8l7r3eInDTfkoF0a84BsICa_9raDGwOdUgoUqjXTsCcMLcC3RXxpOcOrZUUynnDCk0KUZzNDU1hffGs9U5O9Fkkf-Cn1JR5I2IaBnrHjaswlyFb36mkz6fuRB_wn_Ppj3ZoxnoMTFumR2uAWBPXuwZxPQQPdta0O0p1_Kjm4aF3JwTfwFNMeLr3hQlJICD3A688lboAD758zxLP9l-khBjLQ6LPuOoaD0GZrEomVfXX7_4KBvVZJTv2DhLiuADxVqxW2kL28G94HaxVj5qSAmyBGXiIIfGyWuXVn9E6YA8n7bch5xqk9xeOAxFJ3bPKQRV-KjKDT33hhyJPnMqGLLjaBKr1FCWYzVEZJxUmhIeBndc4-a2eDRMAT";
+        const FILES = [
+            { path: "/BRODCAST/playMysic.json", name: "playMysic.json" },
+            { path: "/BRODCAST/playlist.json", name: "playlist.json" },
+            { path: "/BRODCAST/playFilms.json", name: "playFilms.json" }
+        ];
+        let fileData = {};
+
+        window.onload = async function() {
+            const container = document.getElementById('filesContainer');
+            showResult('⏳ Загрузка файлов...', 'loading');
+            container.innerHTML = '';
+            for (const file of FILES) {
+                try {
+                    const res = await fetch('https://content.dropboxapi.com/2/files/download', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${ACCESS_TOKEN}`,
+                            'Dropbox-API-Arg': JSON.stringify({ path: file.path })
+                        }
+                    });
+                    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+                    const data = JSON.parse(await res.text());
+                    fileData[file.path] = data;
+
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.innerHTML = `
+                        <div class="file-info">
+                            <div class="file-title">${file.name}</div>
+                            <input type="datetime-local" id="input-${file.path}" value="${isoToDatetimeLocal(data.broadcastStartTime)}">
+                        </div>
+                        <div class="controls">
+                            <label class="checkbox-label">
+                                <input type="checkbox" data-path="${file.path}" class="select-checkbox">
+                                Выбрать
+                            </label>
+                            <button class="btn-save" onclick="saveSingleFile('${file.path}')">💾 Сохранить</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                } catch (err) {
+                    console.error(`Ошибка загрузки ${file.path}:`, err);
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.innerHTML = `<div class="file-title" style="color:red;">❌ ${file.name}: ${err.message}</div>`;
+                    container.appendChild(item);
+                }
+            }
+            showResult('✅ Все файлы загружены', 'success');
+        };
+
+        async function saveSingleFile(filePath) {
+            const input = document.getElementById(`input-${filePath}`);
+            const newTime = input.value;
+            if (!newTime) return alert('Выберите дату и время');
+            const isoTime = datetimeLocalToIso(newTime);
+            const data = fileData[filePath];
+            if (!data) return;
+
+            data.broadcastStartTime = isoTime;
+            showResult(`💾 Сохранение ${filePath.split('/').pop()}...`, 'loading');
+
+            try {
+                const res = await fetch('https://content.dropboxapi.com/2/files/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+                        'Dropbox-API-Arg': JSON.stringify({ path: filePath, mode: "overwrite" }),
+                        'Content-Type': 'application/octet-stream'
+                    },
+                    body: JSON.stringify(data, null, 2)
+                });
+                if (res.ok) {
+                    showResult(`✅ ${filePath.split('/').pop()} успешно сохранён!`, 'success');
+                } else {
+                    throw new Error(`Ошибка ${res.status}`);
+                }
+            } catch (err) {
+                showResult(`❌ Ошибка сохранения: ${err.message}`, 'error');
+            }
+        }
+
+        async function saveSelectedFiles() {
+            const checkboxes = document.querySelectorAll('.select-checkbox:checked');
+            if (!checkboxes.length) {
+                return showResult('⚠️ Выберите хотя бы один файл', 'error');
+            }
+            showResult(`💾 Сохранение ${checkboxes.length} файлов...`, 'loading');
+            for (const cb of checkboxes) {
+                await saveSingleFile(cb.dataset.path);
+                await new Promise(r => setTimeout(r, 250));
+            }
+            showResult('✅ Все выбранные файлы сохранены!', 'success');
+        }
+
+        function isoToDatetimeLocal(iso) {
+            const d = new Date(iso);
+            return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 16);
+        }
+
+        function datetimeLocalToIso(dt) {
+            return dt + ":00+03:00";
+        }
+
+        function showResult(msg, type) {
+            const el = document.getElementById('result');
+            el.textContent = msg;
+            el.className = `result ${type}`;
+            el.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
